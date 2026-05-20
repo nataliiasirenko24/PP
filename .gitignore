@@ -1,3 +1,4 @@
 *.csv
 *.xlsx
 ~$*
+linkedin_salary_predictor.ipynb
