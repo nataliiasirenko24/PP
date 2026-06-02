@@ -946,15 +946,9 @@ def eda_categorical(
         median_line.set_linewidth(2.0)
 
     global_median_all = data_base[target].median() if target in data_base.columns else 0
-    ax.axvline(global_median_all, color=C_RED, lw=1.5, ls="--", label=f"Gesamt-Median: ${global_median_all:.0f}k")
-
-    if target in data_base.columns:
-        x_max = data_base[target].quantile(0.97)
-        x_min = max(0, data_base[target].quantile(0.03))
-        ax.set_xlim(x_min, x_max * 1.05)
-        ax.get_xaxis().set_major_formatter(
-            plt.FuncFormatter(lambda x, _: f"${x:.0f}k" if x < 1000 else f"${int(x/1000)}k")
-        )
+    ax.axvline(global_median_all, color=C_RED, lw=1.5, ls="--", label=f"Gesamt-Median: ${global_median_all/1000:.0f}k")
+    
+    ax.set_xlim(0, min(300_000, data_base[target].quantile(0.97)) if target in data_base.columns else 300_000)
     ax.set_title("Historische Gehaltsspanne (Gesamtperiode)", fontweight="bold", pad=10)
     ax.set_xlabel("Jahresgehalt (USD)")
     ax.set_ylabel(col)
@@ -1446,15 +1440,82 @@ def generate_skill_meta(feature_names):
         skill_meta[col] = {"level": prefix, "skill": skill}
     return skill_meta
 
+
 # ============================================================
 # 1. СЛОВАРЬ КАТЕГОРИЙ РОЛЕЙ
 # ============================================================
-# Lokale Projektmodule
-import importlib
-import config_mappings as cfg
+import pandas as pd
+ROLE_CATEGORY_MAPPING = {
+    # Data
+    "Data engineer":                              "Data",
+    "Data or business analyst":                   "Data",
+    "Data scientist":                             "Data",
+    "Data scientist or machine learning specialist": "Data",
+    "Database administrator":                     "Data",
+    "Database administrator or engineer":         "Data",
+    "Engineer, data":                             "Data",
+    "Scientist":                                  "Data",
+    "AI/ML engineer":                             "Data",
+    "Applied scientist":                          "Data",
+    "Financial analyst or engineer":              "Data",
 
-importlib.reload(cfg)
+    # Developer
+    "Developer Advocate":                         "Developer",
+    "Developer Experience":                       "Developer",
+    "Developer, AI":                              "Developer",
+    "Developer, AI apps or physical AI":          "Developer",
+    "Developer, back-end":                        "Developer",
+    "Developer, desktop or enterprise applications": "Developer",
+    "Developer, embedded applications or devices": "Developer",
+    "Developer, front-end":                       "Developer",
+    "Developer, full-stack":                      "Developer",
+    "Developer, game or graphics":                "Developer",
+    "Developer, mobile":                          "Developer",
+    "Developer, QA or test":                      "Developer",
+    "Architect, software or solutions":           "Developer",
+    "Blockchain":                                 "Developer",
+    "Engineer, site reliability":                 "Developer",
 
+    # Manager
+    "Engineering manager":                        "Manager",
+    "Product manager":                            "Manager",
+    "Project manager":                            "Manager",
+    "Senior Executive (C-Suite, VP, etc.)":       "Manager",
+    "Senior executive/VP":                        "Manager",
+    "Founder, technology or otherwise":           "Manager",
+
+    # Other
+    "Other (please specify):":                    "Other",
+    "Student":                                    "Other",
+    "Unknown":                                    "Other",
+    "Educator":                                   "Other",
+    "Retired":                                    "Other",
+    "Academic researcher":                        "Other",
+    "Research & Development role":                "Other",
+
+    # DevOps/Infrastructure
+    "DevOps engineer or professional":            "Other",
+    "DevOps specialist":                          "Other",
+    "System administrator":                       "Other",
+    "Cloud infrastructure engineer":              "Other",
+
+    # Design
+    "Designer":                                   "Other",
+    "UX, Research Ops or UI design professional": "Other",
+
+    # Marketing
+    "Marketing or sales professional":            "Other",
+
+    # Engineering
+    "Hardware Engineer":                          "Other",
+
+    # Security
+    "Cybersecurity or InfoSec professional":      "Other",
+    "Security professional":                      "Other",
+
+    # Support
+    "Support engineer or analyst":                "Other",
+}
 
 # ============================================================
 # 2. БАЗОВЫЕ ФУНКЦИИ ОБРАБОТКИ
@@ -1467,7 +1528,7 @@ def parse_roles(devtype_str):
     return [r.strip() for r in str(devtype_str).split(';') if r.strip()]
 
 
-def get_role_categories(devtype_str, mapping=cfg.role_category_mapping):
+def get_role_categories(devtype_str, mapping=ROLE_CATEGORY_MAPPING):
     """Возвращает список уникальных категорий для строки devtype."""
     roles = parse_roles(devtype_str)
     cats = [mapping.get(r, 'Other') for r in roles]
@@ -1490,7 +1551,7 @@ def compute_role_count(devtype_str):
     return len(parse_roles(devtype_str))
 
 
-def compute_data_role_purity(devtype_str, mapping=cfg.role_category_mapping):
+def compute_data_role_purity(devtype_str, mapping=ROLE_CATEGORY_MAPPING):
     """
     Доля дата-ролей от общего числа ролей.
     1.0 — чистый дата-специалист, 0.0 — нет дата-ролей вообще.
@@ -1502,7 +1563,7 @@ def compute_data_role_purity(devtype_str, mapping=cfg.role_category_mapping):
     return data_count / len(roles)
 
 
-def compute_category_flags(devtype_str, mapping=cfg.role_category_mapping):
+def compute_category_flags(devtype_str, mapping=ROLE_CATEGORY_MAPPING):
     """Бинарные флаги наличия каждой категории (has_data, has_developer, ...)."""
     cats = set(get_role_categories(devtype_str, mapping))
     all_cats = ['Data', 'Developer', 'Manager', 'Other']
@@ -1513,7 +1574,7 @@ def compute_category_flags(devtype_str, mapping=cfg.role_category_mapping):
 # 3. НОВЫЕ ФУНКЦИИ: мультиколонки и счётчики
 # ============================================================
 
-def extract_data_roles_str(devtype_str, mapping=cfg.role_category_mapping):
+def extract_data_roles_str(devtype_str, mapping=ROLE_CATEGORY_MAPPING):
     """
     Возвращает строку с дата-ролями через ';'.
     Используется как мультизначная колонка для CountVectorizer.
@@ -1530,7 +1591,7 @@ def extract_data_roles_str(devtype_str, mapping=cfg.role_category_mapping):
     return ';'.join(data_roles) if data_roles else 'None'
 
 
-def extract_other_roles_str(devtype_str, mapping=cfg.role_category_mapping):
+def extract_other_roles_str(devtype_str, mapping=ROLE_CATEGORY_MAPPING):
     """
     Возвращает строку с НЕ-дата ролями через ';'.
     Используется как мультизначная колонка для CountVectorizer.
@@ -1547,7 +1608,7 @@ def extract_other_roles_str(devtype_str, mapping=cfg.role_category_mapping):
     return ';'.join(other_roles) if other_roles else 'None'
 
 
-def compute_role_counts_by_category(devtype_str, mapping=cfg.role_category_mapping):
+def compute_role_counts_by_category(devtype_str, mapping=ROLE_CATEGORY_MAPPING):
     """
     Возвращает dict с количеством ролей в каждой категории.
 
@@ -1570,7 +1631,7 @@ def compute_role_counts_by_category(devtype_str, mapping=cfg.role_category_mappi
 # 4. ОСНОВНАЯ ФУНКЦИЯ ОБОГАЩЕНИЯ DataFrame
 # ============================================================
 
-def enrich_devtype_features(df, devtype_col='devtype', mapping=cfg.role_category_mapping):
+def enrich_devtype_features(df, devtype_col='devtype', mapping=ROLE_CATEGORY_MAPPING):
     """
     Добавляет все производные признаки из devtype в DataFrame.
 
@@ -1641,31 +1702,6 @@ def compute_sample_weights(df, strategy='purity'):
     else:
         raise ValueError(f"Unknown strategy: {strategy}")
 
-
-# ============================================================
-# 6. БЫСТРАЯ ПРОВЕРКА
-# ============================================================
-
-if __name__ == '__main__':
-    import pandas as pd
-
-    test_cases = [
-        "Data or business analyst",
-        "Data scientist or machine learning specialist;Developer, back-end",
-        "Data or business analyst;Engineer, data;Developer, full-stack;DevOps specialist",
-        "Academic researcher;Data scientist or machine learning specialist;Developer, QA or test;Engineering manager",
-        "Database administrator;Designer;Developer, back-end;Developer, front-end;Developer, full-stack;System administrator",
-    ]
-
-    print(f"{'Строка':<70} {'data_roles':<40} {'other_roles':<50} {'count_d':>7} {'count_dev':>9} {'purity':>7}")
-    print("-" * 190)
-    for t in test_cases:
-        short   = (t[:67] + '...') if len(t) > 70 else t
-        dr      = extract_data_roles_str(t)
-        oroles  = extract_other_roles_str(t)
-        counts  = compute_role_counts_by_category(t)
-        purity  = compute_data_role_purity(t)
-        print(f"{short:<70} {dr:<40} {oroles:<50} {counts['count_data']:>7} {counts['count_developer']:>9} {purity:>7.0%}")
 
 
 
