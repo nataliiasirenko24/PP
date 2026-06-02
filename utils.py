@@ -822,24 +822,28 @@ def eda_categorical(
 
     y_positions = np.arange(len(order))
     bar_width = 0.38
-    
-    bars_all = ax.barh(y_positions[::-1] + bar_width/2, pct_all[::-1], height=bar_width, 
-                       color=color_list_main[::-1], alpha=0.9, edgecolor="white", label="Alle Jahre")
-    bars_2025 = ax.barh(y_positions[::-1] - bar_width/2, pct_2025[::-1], height=bar_width, 
-                        color=color_list_main[::-1], alpha=0.45, edgecolor="white", label="Jahr 2025")
+
+    # order[0] = самая частая категория — рисуем сверху (максимальная y-позиция)
+    # порядок по оси Y: order[0] вверху, order[-1] внизу
+    y_rev = y_positions[::-1]   # позиции сверху вниз
+
+    bars_all  = ax.barh(y_rev + bar_width/2, pct_all,  height=bar_width,
+                        color=color_list_main, alpha=0.9,  edgecolor="white", label="Alle Jahre")
+    bars_2025 = ax.barh(y_rev - bar_width/2, pct_2025, height=bar_width,
+                        color=color_list_main, alpha=0.45, edgecolor="white", label="Jahr 2025")
 
     max_pct = max(pct_all.max(), pct_2025.max(), 1)
-    for bar, c_val, p_val in zip(bars_all, count_all_vals[::-1], pct_all[::-1]):
+    for bar, c_val, p_val in zip(bars_all, count_all_vals, pct_all):
         if p_val > 0:
-            ax.text(bar.get_width() + max_pct * 0.015, bar.get_y() + bar.get_height()/2, 
+            ax.text(bar.get_width() + max_pct * 0.015, bar.get_y() + bar.get_height()/2,
                     f"{int(c_val):,} ({p_val:.1f}%)", va="center", fontsize=8, color="#222222", fontweight="bold")
 
-    for bar, c_val, p_val in zip(bars_2025, count_2025_vals[::-1], pct_2025[::-1]):
+    for bar, c_val, p_val in zip(bars_2025, count_2025_vals, pct_2025):
         if p_val > 0:
-            ax.text(bar.get_width() + max_pct * 0.015, bar.get_y() + bar.get_height()/2, 
+            ax.text(bar.get_width() + max_pct * 0.015, bar.get_y() + bar.get_height()/2,
                     f"{int(c_val):,} ({p_val:.1f}%)", va="center", fontsize=8, color="#555555")
 
-    ax.set_yticks(y_positions[::-1])
+    ax.set_yticks(y_rev)
     ax.set_yticklabels(order)
     ax.set_xlim(0, max_pct * 1.35)
     ax.set_title("Marktanteile: Gesamt vs. 2025", fontweight="bold", pad=10)
@@ -901,28 +905,56 @@ def eda_categorical(
     # ════════════════════════════════════════════════════════════════════════
     ax = axes[1, 0]
     
-    sns.boxplot(
-        data=plot_data_all_years, y=col, x=target, ax=ax, order=order, hue=col, legend=False, width=0.65,
-        linecolor="white", linewidth=1.0, flierprops={"marker": ".", "alpha": 0.25, "markersize": 3, "markeredgecolor": "none"},
+    # Используем matplotlib напрямую — обходим баг seaborn 0.13.x с boxprops
+    # matplotlib boxplot рисует снизу вверх (позиция 1 = нижний),
+    # поэтому передаём order[::-1] чтобы порядок совпал с барчартом (сверху вниз)
+    box_order_rev = order[::-1]
+    box_data  = [
+        plot_data_all_years.loc[plot_data_all_years[col] == cat, target].dropna().values
+        for cat in box_order_rev
+    ]
+    bp = ax.boxplot(
+        box_data,
+        vert=False,
+        patch_artist=True,
+        widths=0.55,
+        flierprops={"marker": ".", "alpha": 0.25, "markersize": 3,
+                    "markeredgecolor": "none", "markerfacecolor": "#555555"},
+        medianprops={"linewidth": 2.0},
+        whiskerprops={"linewidth": 1.2},
+        capprops={"linewidth": 1.2},
+        boxprops={"linewidth": 0.8},
     )
-    
-    for i, patch in enumerate(ax.patches):
-        if i < len(order):
-            current_cat = order[i]
-            current_color = category_colors[current_cat]
-            
-            patch.set_facecolor(current_color)
-            patch.set_alpha(0.9)
-            
-            for j in range(i * 6, (i + 1) * 6):
-                if j < len(ax.lines):
-                    ax.lines[j].set_color(current_color)
-                    ax.lines[j].set_linewidth(1.5)
+    ax.set_yticks(range(1, len(box_order_rev) + 1))
+    ax.set_yticklabels(box_order_rev)
+
+    for i, (patch, whisker_pair, cap_pair, median_line) in enumerate(
+        zip(bp["boxes"], zip(*[iter(bp["whiskers"])] * 2),
+            zip(*[iter(bp["caps"])] * 2), bp["medians"])
+    ):
+        color = category_colors[box_order_rev[i]]
+        patch.set_facecolor(color)
+        patch.set_alpha(0.85)
+        patch.set_edgecolor("white")
+        for w in whisker_pair:
+            w.set_color(color)
+            w.set_linewidth(1.2)
+        for c in cap_pair:
+            c.set_color(color)
+            c.set_linewidth(1.2)
+        median_line.set_color("white")
+        median_line.set_linewidth(2.0)
 
     global_median_all = data_base[target].median() if target in data_base.columns else 0
-    ax.axvline(global_median_all, color=C_RED, lw=1.5, ls="--", label=f"Gesamt-Median: ${global_median_all/1000:.0f}k")
-    
-    ax.set_xlim(0, min(300_000, data_base[target].quantile(0.97)) if target in data_base.columns else 300_000)
+    ax.axvline(global_median_all, color=C_RED, lw=1.5, ls="--", label=f"Gesamt-Median: ${global_median_all:.0f}k")
+
+    if target in data_base.columns:
+        x_max = data_base[target].quantile(0.97)
+        x_min = max(0, data_base[target].quantile(0.03))
+        ax.set_xlim(x_min, x_max * 1.05)
+        ax.get_xaxis().set_major_formatter(
+            plt.FuncFormatter(lambda x, _: f"${x:.0f}k" if x < 1000 else f"${int(x/1000)}k")
+        )
     ax.set_title("Historische Gehaltsspanne (Gesamtperiode)", fontweight="bold", pad=10)
     ax.set_xlabel("Jahresgehalt (USD)")
     ax.set_ylabel(col)
@@ -1105,27 +1137,41 @@ def eda_numeric(
     # ════════════════════════════════════════════════════════════════════════
     ax = axes[1, 0]
     if target in data_base.columns and len(box_order) > 0:
-        # Ось Y — это года, ось X — распределение зарплат (target)
-        sns.boxplot(
-            data=data_base, y=year_col, x=target, ax=ax, order=box_order, orient='h', hue=year_col, legend=False, width=0.5,
-            linecolor="white", linewidth=1.0,
-            flierprops={"marker": ".", "alpha": 0.3, "markersize": 4, "markeredgecolor": "none", "markerfacecolor": "#222222"}
+        box_data_yr = [
+            data_base.loc[data_base[year_col] == yr, target].dropna().values
+            for yr in box_order
+        ]
+        bp_yr = ax.boxplot(
+            box_data_yr,
+            vert=False,
+            patch_artist=True,
+            widths=0.45,
+            flierprops={"marker": ".", "alpha": 0.3, "markersize": 4,
+                        "markeredgecolor": "none", "markerfacecolor": "#222222"},
+            medianprops={"linewidth": 2.0},
+            whiskerprops={"linewidth": 1.2},
+            capprops={"linewidth": 1.2},
+            boxprops={"linewidth": 0.8},
         )
-        
-        # Перекрашиваем каждый год в свой случайный цвет из словаря year_colors
-        for i, patch in enumerate(ax.patches):
-            if i < len(box_order):
-                current_yr = box_order[i]
-                current_color = year_colors[current_yr]
-                
-                patch.set_facecolor(current_color)
-                patch.set_alpha(0.85)
-                
-                # Красим усы и медианы этой конкретной коробки года в аналогичный цвет
-                for j in range(i * 6, (i + 1) * 6):
-                    if j < len(ax.lines):
-                        ax.lines[j].set_color(current_color)
-                        ax.lines[j].set_linewidth(1.5)
+        ax.set_yticks(range(1, len(box_order) + 1))
+        ax.set_yticklabels(box_order)
+
+        for i, (patch, whisker_pair, cap_pair, median_line) in enumerate(
+            zip(bp_yr["boxes"], zip(*[iter(bp_yr["whiskers"])] * 2),
+                zip(*[iter(bp_yr["caps"])] * 2), bp_yr["medians"])
+        ):
+            color = year_colors[box_order[i]]
+            patch.set_facecolor(color)
+            patch.set_alpha(0.85)
+            patch.set_edgecolor("white")
+            for w in whisker_pair:
+                w.set_color(color)
+                w.set_linewidth(1.2)
+            for c in cap_pair:
+                c.set_color(color)
+                c.set_linewidth(1.2)
+            median_line.set_color("white")
+            median_line.set_linewidth(2.0)
                         
         ax.set_title(f"{target}-Verteilung nach Jahren (Boxplot)", fontweight="bold", pad=10)
         ax.set_xlabel(f"{target} (USD)")
