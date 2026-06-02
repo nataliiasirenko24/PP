@@ -258,19 +258,19 @@ def impute_work_exp(df):
     df = df.copy()
     
     # 1. Создаем индикатор пропусков (0 или 1)
-    df['work_exp_is_missing'] = df['work_exp'].isna().astype(int)
+    df['work_exp_is_missing'] = df['workexp'].isna().astype(int)
     
     # 2. Вычисляем медианы для групп
     # Группируем и сохраняем как Series
-    medians = df.groupby(['education', 'years_code'], observed=True)['work_exp'].transform('median')
+    medians = df.groupby(['education', 'yearscode'], observed=True)['workexp'].transform('median')
     
     # 3. Заполняем пропуски в work_exp вычисленными медианами
-    df['work_exp'] = df['work_exp'].fillna(medians)
+    df['workexp'] = df['workexp'].fillna(medians)
     
     # 4. Если остались NaN (например, группа была целиком из пропусков), 
     # заполняем их глобальной медианой
-    global_median = df['work_exp'].median()
-    df['work_exp'] = df['work_exp'].fillna(global_median)
+    global_median = df['workexp'].median()
+    df['workexp'] = df['workexp'].fillna(global_median)
     
     return df
 
@@ -1669,3 +1669,102 @@ if __name__ == '__main__':
 
 
 
+
+
+
+def categorize_age(val):
+    # 1. Сначала приводим всё к строке и убираем лишние пробелы
+    val = str(val).strip()
+    
+    # 2. Обработка уже готовых категорий
+    mapping = {
+        'Under 18 years old': 'Under 18',
+        '18-24 years old': '18-24',
+        '25-34 years old': '25-34',
+        '35-44 years old': '35-44',
+        '45-54 years old': '45-54',
+        '55-64 years old': '55-64',
+        '65 years or older': '65+',
+        'Prefer not to say': 'Unknown',
+        'nan': 'Unknown',
+        'Unknown': 'Unknown'
+    }
+    
+    if val in mapping:
+        return mapping[val]
+    
+    # 3. Обработка числовых значений
+    try:
+        age = float(val)
+        if age < 18: return 'Under 18'
+        elif 18 <= age <= 24: return '18-24'
+        elif 25 <= age <= 34: return '25-34'
+        elif 35 <= age <= 44: return '35-44'
+        elif 45 <= age <= 54: return '45-54'
+        elif 55 <= age <= 64: return '55-64'
+        elif age >= 65: return '65+'
+        else: return 'Unknown'
+    except:
+        return 'Unknown'
+
+
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Дополнение к utils.py
+# ════════════════════════════════════════════════════════════════════════════
+
+def fix_apostrophes(mapping: dict) -> dict:
+    """
+    Ersetzt typografische Apostrophe ' (U+2019) durch Standard ' (U+0027).
+    Einmalig beim Laden der cfg-Mappings aufrufen.
+    """
+    return {
+        k.replace("\u2019", "'").replace("\u2018", "'"): v
+        for k, v in mapping.items()
+    }
+
+
+def shap_log_to_usd_skill(feat, shap_df, median_salary,
+                           source_features=None, min_rows=10):
+    """
+    Berechnet den mittleren SHAP-Wert nur für Zeilen,
+    in denen der Skill tatsächlich vorhanden ist (Quelldaten vor dem Preprocessor).
+
+    TreeExplainer liefert für ALLE Zeilen Nicht-Null-SHAP-Werte,
+    daher filtern wir über source_features statt shap != 0.
+
+    Parameters
+    ----------
+    feat            : str   — z.B. "multi_language__Python"
+    shap_df         : pd.DataFrame — SHAP-Werte (Zeilen = Samples, Spalten = Features)
+    median_salary   : float — globaler oder kontextueller Median in Tausend USD
+    source_features : pd.DataFrame — Originaldaten vor dem Preprocessor
+    min_rows        : int   — Mindestanzahl Zeilen mit dem Skill (0 = kein Filter)
+
+    Returns
+    -------
+    float — Gehaltseinfluss in Tausend USD (positiv = erhöht, negativ = senkt)
+    """
+    if feat not in shap_df.columns:
+        return 0.0
+
+    if source_features is not None and "__" in feat:
+        prefix, skill_name = feat.split("__", 1)
+        col_name = prefix.replace("multi_", "")
+
+        if col_name in source_features.columns:
+            has_skill = source_features[col_name].str.contains(
+                skill_name, regex=False, na=False
+            )
+            idx = shap_df.index.intersection(source_features[has_skill].index)
+        else:
+            idx = shap_df.index
+    else:
+        idx = shap_df.index
+
+    if min_rows > 0 and len(idx) < min_rows:
+        return 0.0
+
+    mean_shap = shap_df.loc[idx, feat].mean()
+    return float(np.exp(np.log1p(median_salary) + mean_shap) - median_salary)

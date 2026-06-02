@@ -7,10 +7,12 @@ schema = {yr: dict(
     currency   = 'Currency' if yr >= 2021 else 'CurrencyDesc',
 
     # Демография и базовый профиль
-    country    = 'Country',
-    work_exp   = 'WorkExp' if yr >= 2022 else None,
-    years_code = 'YearsCode',
-    remote     = 'RemoteWork' if yr >= 2022 else None,
+    country = 'Country',
+    workexp = 'WorkExp' if yr >= 2022 else None,
+    yearscode = 'YearsCode',
+    yearscodepro = 'YearsCodePro',
+    remote = 'RemoteWork' if yr >= 2022 else None,
+    age = 'Age',
 
     # Профессиональный трек
     branch     = 'MainBranch',
@@ -18,7 +20,7 @@ schema = {yr: dict(
     education  = 'EdLevel',
     employment = 'Employment',
     industry   = 'Industry' if yr >= 2022 else None,
-    org_size   = 'OrgSize',
+    orgsize   = 'OrgSize',
     icorpm     = 'ICorPM' if yr >= 2022 else None,
 
     # Хард-стек (мульти-выбор)
@@ -37,15 +39,20 @@ schema = {yr: dict(
     tech_have       = ('SOTagsHaveWorkedWith' if yr >= 2025 else
                        'MiscTechHaveWorkedWith' if yr >= 2021 else
                        'MiscTechWorkedWith' if yr == 2020 else None),
-    tech_entry       = ('SOTagsHaveWorkedWith' if yr == 2025 else None),
+
+    tech_entry       = ('SOTagsHaveEntry' if yr == 2025 else None),
 
     ai_have = ('AIModelsHaveWorkedWith' if yr >= 2025 else
                   'AISearchDevHaveWorkedWith' if yr == 2024 else
                   'AISearchHaveWorkedWith' if yr == 2023 else None),
     ai_entry = ('AIModelsWantEntry' if yr == 2025 else None),
     
-    ai_select  = 'AISelect' if yr >= 2023 else None,
-    ai_agents  = 'AIAgentExternal' if yr >= 2025 else None,
+    aiselect  = 'AISelect' if yr >= 2023 else None,
+    aiagents  = 'AIAgentExternal' if yr >= 2025 else None,
+
+    activities = 'CodingActivities' if yr >= 2022 else None,
+    opsys = 'OpSysProfessional use'if yr >= 2022 else None,
+    office_stack = 'OfficeStackAsyncHaveWorkedWith' if yr >= 2022 else None,
 ) for yr in range(2020, 2026)}
 
 
@@ -215,7 +222,7 @@ industry_mapping = {
 }
 
 # 1. Порядковый ранк размера компании (для XGBoost / CatBoost)
-org_size_mapping = {
+orgsize_mapping = {
     '10,000 or more employees': '10k+',
     '5,000 to 9,999 employees': 'Large 2 (5-9k)',
     '1,000 to 4,999 employees': 'Large 1 (1-5k)',
@@ -231,7 +238,7 @@ org_size_mapping = {
 }
 
 # 2. Текстовые группы для One-Hot Encoding (для Линейной регрессии)
-org_size_rank_mapping = {
+orgsize_rank_mapping = {
     '10k+': 9,
     'Large 2 (5-9k)': 8,
     'Large 1 (1-5k)': 7,
@@ -259,7 +266,7 @@ platform_mapping = {
     'azure': 'Microsoft Azure'
 }
 
-ai_select_mapping = {
+aiselect_mapping = {
     'Yes': 'Yes',
     'Yes, I use AI tools daily': 'Yes',
     'Yes, I use AI tools weekly': 'Yes',
@@ -286,7 +293,6 @@ language_mapping  = {
     'Unknown':'Other'
 }
 
-# Маппинг для колонки 'database' 
 database_mapping= {
     'sqlite': 'SQLite',
     'Dynamodb': 'DynamoDB',
@@ -385,6 +391,99 @@ ai_mapping = {
     # Meta
     "Meta Llama (all models)": "Meta AI"
 }
+
+
+
+opsys_mapping = {'Unknown': 'Other',
+                  'Windows': 'Windows',
+                  'MacOS': 'MacOS',
+                  'Ubuntu': 'Ubuntu',
+                  'Windows Subsystem for Linux (WSL)': 'Linux',
+                  'macOS': 'MacOS',
+                  'Linux-based': 'Linux',
+                  'Debian': 'Other',
+                  'iOS': 'Other',
+                  'Other Linux-based': 'Linux',
+                  'Android': 'Other',
+                  'Red Hat': 'Other',
+                  'Linux (non-WSL)': 'Linux',
+                  'Arch': 'Other',
+                  'Fedora': 'Other',
+                  'iPadOS': 'Other',
+                  'Other (Please Specify):': 'Other',
+                  'Cygwin': 'Other',
+                  'BSD': 'Other',
+                  'Other (please specify):': 'Other',
+                  'ChromeOS': 'Other',
+                  'NixOS': 'Other',
+                  'AIX': 'Other',
+                  'Solaris': 'Other',
+                  'Pop!_OS': 'Other',
+                  'Haiku': 'Other'}
+
+office_stack_mapping={'Unknown': 'Other',
+                                            'Jira': 'Jira',
+                                            'Confluence': 'Confluence',
+                                            'Markdown File': 'Markdown File',
+                                            'Trello': 'Trello',
+                                            'Notion': 'Notion',
+                                            'GitHub': 'GitHub',
+                                            'Jira Work Management': 'Jira',
+                                            'Azure Devops': 'Azure Devops',
+                                            'Miro': 'Miro',
+                                            'GitHub Discussions': 'GitHub',
+                                            'GitLab': 'Other',
+                                            'Wikis': 'Other',
+                                            'Asana': 'Other',
+                                            'Obsidian': 'Other',
+                                            'Microsoft Planner': 'Other',
+                                            'Clickup': 'Other',
+                                            'Google Workspace': 'Other',
+                                            'Doxygen': 'Other',
+                                            'Stack Overflow for Teams': 'Other',
+                                            'Airtable': 'Other',
+                                            'Linear': 'Other',
+                                            'Redmine': 'Other',
+                                            'Monday.com': 'Other',
+                                            'YouTrack': 'Other',
+                                            'ClickUp': 'Other',
+                                            'Lucid (includes Lucidchart)': 'Other',
+                                            'Google Colab': 'Other',
+                                            'Smartsheet': 'Other',
+                                            'Basecamp': 'Other',
+                                            'Microsoft Lists': 'Other',
+                                            'monday.com': 'Other',
+                                            'Lucid': 'Other',
+                                            'Shortcut': 'Other',
+                                            'Wrike': 'Other',
+                                            'Coda': 'Other',
+                                            'Adobe Workfront': 'Other',
+                                            'Redocly': 'Other',
+                                            'Nuclino': 'Other',
+                                            'DingTalk (Teambition)': 'Other',
+                                            'Document360': 'Other',
+                                            'Swit': 'Other',
+                                            'Tettra': 'Other',
+                                            'Workzone': 'Other',
+                                            'Dingtalk (Teambition)': 'Other',
+                                            'Planview Projectplace or Clarizen': 'Other',
+                                            'Planview Projectplace Or Clarizen': 'Other',
+                                            'Wimi': 'Other',
+                                            'Leankor': 'Other',
+                                            'Cerri': 'Other'}
+
+
+activities_mapping={'Unknown': 'Other',
+                                                            'Hobby': 'Hobby',
+                                                            'Contribute to open-source projects': 'Open Source',
+                                                            'Professional development or self-paced learning from online courses': 'Learning',
+                                                            'Freelance/contract work': 'Professional',
+                                                            'Bootstrapping a business': 'Professional',
+                                                            'I don’t code outside of work': 'Inactive',
+                                                            'School or academic work': 'Learning',
+                                                            'Other (please specify):': 'Other'}
+
+
 
 
 region_mapping = {
@@ -679,4 +778,182 @@ role_category_mapping = {
 
     # Support
     "Support engineer or analyst":                "Other",
+}
+
+
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Дополнение к config_mappings.py
+# Добавить в конец существующего файла config_mappings.py
+# ════════════════════════════════════════════════════════════════════════════
+
+# ── SO Survey → interne Rollenbezeichnungen ───────────────────────────────────
+ROLE_NAME_MAPPING = {
+    "Data scientist or machine learning specialist": "Data Scientist / ML specialist",
+    "Data scientist":                               "Data Scientist / ML specialist",
+    "Applied scientist":                            "Applied scientist",
+    "Data engineer":                                "Data Engineer",
+    "Engineer, data":                               "Data Engineer",
+    "AI/ML engineer":                               "AI/ML Engineer",
+    "Database administrator":                       "Database Administrator",
+    "Database administrator or engineer":           "Database Administrator",
+    "Data or business analyst":                     "Data Analyst",
+    "Financial analyst or engineer":                "Financial Analyst",
+    "Scientist":                                    "Scientist",
+}
+
+# ── Skill-Whitelists pro Rolle ────────────────────────────────────────────────
+DATA_ROLE_SKILLS = {
+    "Data Analyst": {
+        # Языки
+        "Python", "SQL", "R", "VBA",
+        # Визуализация и BI
+        "Tableau", "Power BI", "Looker", "Qlik", "Metabase",
+        "Matplotlib", "Seaborn", "Plotly",
+        "Excel", "Google Sheets",
+        # Базы данных
+        "PostgreSQL", "MySQL", "Microsoft SQL Server",
+        "BigQuery", "Snowflake", "MongoDB",
+        # ML-основы
+        "Pandas", "NumPy", "Scikit-Learn",
+        # Инструменты
+        "dbt", "Airflow", "Spark",
+        # AI-ассистенты
+        "OpenAI / ChatGPT", "Google Gemini", "GitHub Copilot",
+    },
+    "Data Scientist / ML specialist": {
+        # Языки
+        "Python", "SQL", "R", "Scala", "Julia",
+        # ML / DL
+        "PyTorch", "TensorFlow", "Scikit-Learn", "Keras",
+        "MLflow", "OpenCV",
+        # Data
+        "Pandas", "NumPy", "Matplotlib", "Seaborn", "Plotly",
+        # Инфраструктура
+        "Spark", "Airflow", "dbt",
+        "BigQuery", "Snowflake", "PostgreSQL", "MongoDB", "Redis",
+        "AWS", "Google Cloud", "Microsoft Azure", "Docker",
+        # AI
+        "OpenAI / ChatGPT", "Claude", "Google Gemini", "GitHub Copilot",
+    },
+    "Data Engineer": {
+        # Языки
+        "Python", "SQL", "Scala", "Java", "Bash/Shell/PowerShell",
+        # Оркестрация и ETL
+        "Spark", "Airflow", "dbt", "Kafka",
+        # Базы данных
+        "BigQuery", "Snowflake", "PostgreSQL", "MySQL",
+        "Microsoft SQL Server", "MongoDB", "Redis",
+        "Cassandra", "Elasticsearch", "DynamoDB",
+        # Инфраструктура
+        "AWS", "Google Cloud", "Microsoft Azure",
+        "Docker", "Kubernetes", "Terraform", "Ansible",
+    },
+    "Database Administrator": {
+        # Языки
+        "SQL", "Python", "Bash/Shell/PowerShell",
+        # Базы данных
+        "PostgreSQL", "MySQL", "Microsoft SQL Server", "Oracle",
+        "MongoDB", "Redis", "Cassandra", "Elasticsearch",
+        # Инфраструктура
+        "AWS", "Google Cloud", "Microsoft Azure", "Docker",
+    },
+    "AI/ML Engineer": {
+        # Языки
+        "Python", "Scala", "Julia", "Rust",
+        # ML / DL
+        "PyTorch", "TensorFlow", "Scikit-Learn", "Keras",
+        "MLflow", "OpenCV",
+        # Инфраструктура
+        "Spark", "Airflow", "Docker", "Kubernetes",
+        "AWS", "Google Cloud", "Microsoft Azure",
+        # Базы данных
+        "BigQuery", "Snowflake", "PostgreSQL", "MongoDB",
+        # AI
+        "OpenAI / ChatGPT", "Claude", "Google Gemini", "GitHub Copilot",
+    },
+    "Applied scientist": {
+        # Языки
+        "Python", "R", "SQL", "Scala", "Julia", "Matlab",
+        # ML / DL
+        "PyTorch", "TensorFlow", "Scikit-Learn", "Keras", "MLflow",
+        # Data
+        "Pandas", "NumPy", "Matplotlib", "Seaborn", "Plotly",
+        # Инфраструктура
+        "Spark", "AWS", "Google Cloud", "Microsoft Azure", "Docker",
+    },
+    "Financial Analyst": {
+        # Языки
+        "Python", "SQL", "R", "VBA",
+        # BI и таблицы
+        "Excel", "Google Sheets", "Power BI", "Tableau", "Looker",
+        # Базы данных
+        "PostgreSQL", "MySQL", "Microsoft SQL Server",
+        # Data
+        "Pandas", "NumPy", "Matplotlib", "Plotly",
+        # AI
+        "OpenAI / ChatGPT", "GitHub Copilot",
+    },
+    "Scientist": {
+        # Языки
+        "Python", "R", "SQL", "Julia", "Matlab",
+        # ML / DL
+        "PyTorch", "TensorFlow", "Scikit-Learn", "Keras",
+        # Data
+        "Pandas", "NumPy", "Matplotlib", "Seaborn", "Plotly",
+        # Инфраструктура
+        "AWS", "Google Cloud", "Docker",
+    },
+}
+
+# Объединение всех скиллов — используется как fallback
+ALL_DATA_SKILLS = set().union(*DATA_ROLE_SKILLS.values())
+
+# ── Валюты по странам ─────────────────────────────────────────────────────────
+COUNTRY_CURRENCY = {
+    "Germany":        "EUR European Euro",
+    "France":         "EUR European Euro",
+    "Netherlands":    "EUR European Euro",
+    "Spain":          "EUR European Euro",
+    "Italy":          "EUR European Euro",
+    "Poland":         "EUR European Euro",
+    "Switzerland":    "CHF Swiss Franc",
+    "United Kingdom": "GBP British Pound",
+    "United States":  "USD US Dollar",
+    "Canada":         "CAD Canadian Dollar",
+    "Australia":      "AUD Australian Dollar",
+    "India":          "INR Indian Rupee",
+    "Brazil":         "BRL Brazilian Real",
+    "Japan":          "JPY Japanese Yen",
+}
+
+# ── Категории скиллов для _build_profile_row ─────────────────────────────────
+LANG_KNOWN = {
+    "Python", "SQL", "R", "Java", "C++", "Go", "Rust", "Scala",
+    "TypeScript", "JavaScript", "Bash/Shell/PowerShell", "HTML/CSS",
+    "PHP", "C#", "Kotlin", "Swift", "Ruby", "VBA", "Dart", "Matlab",
+    "LISP", "COBOL", "Perl", "Julia", "Haskell", "Groovy",
+}
+DB_KNOWN = {
+    "PostgreSQL", "MySQL", "MongoDB", "Redis", "Snowflake", "BigQuery",
+    "Elasticsearch", "DynamoDB", "SQLite", "Microsoft SQL Server",
+    "Oracle", "Cassandra", "CockroachDB", "Neo4J", "Firebase",
+}
+PLAT_KNOWN = {
+    "AWS", "Google Cloud", "Microsoft Azure", "Docker", "Kubernetes",
+    "Terraform", "Heroku", "DigitalOcean", "Ansible", "Linode, now Akamai",
+}
+WEB_KNOWN = {
+    "FastAPI", "Flask", "Django", "Streamlit", "React", "Angular",
+    "Vue.js", "Node.js", "Spring Framework", "ASP.NET Core",
+}
+TECH_KNOWN = {
+    "Scikit-Learn", "TensorFlow", "PyTorch", "Pandas", "NumPy", "Spark",
+    "Airflow", "dbt", "Tableau", "Power BI", "Looker", "Matplotlib",
+    "Seaborn", "Plotly", "OpenCV", "MLflow", "Keras",
+}
+AI_KNOWN = {
+    "OpenAI / ChatGPT", "Claude", "Google Gemini", "GitHub Copilot",
+    "DeepSeek", "Meta AI", "Perplexity AI", "Tabnine", "Codeium",
 }

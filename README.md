@@ -40,5 +40,5 @@ Das Endergebnis ist ein interaktives **Data Career Advisor**-System, das persona
 ### ✨ Wichtigste Ergebnisse
 
 * **Bestes Modell** CatBoostRegressor (Optuna-optimiert)
-* **MAE** ~$25 900 / Jahr 
-* **R²**  0.59 
+* **MAE** ~$25 500 / Jahr 
+* **R²**  0.61 
