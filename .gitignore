@@ -1,4 +1,16 @@
 *.csv
 *.xlsx
 ~$*
-linkedin_salary_predictor.ipynb
+# Python caches
+__pycache__/
+*.pyc
+
+# ML training logs
+catboost_info/
+
+# Large models
+*.joblib
+*.pkl
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
