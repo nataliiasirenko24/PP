@@ -53,6 +53,7 @@ schema = {yr: dict(
     activities = 'CodingActivities' if yr >= 2022 else None,
     opsys = 'OpSysProfessional use'if yr >= 2022 else None,
     office_stack = 'OfficeStackAsyncHaveWorkedWith' if yr >= 2022 else None,
+    
 ) for yr in range(2020, 2026)}
 
 
