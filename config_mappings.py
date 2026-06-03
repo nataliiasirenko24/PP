@@ -162,6 +162,7 @@ education_mapping = {
     'Professional degree (JD, MD, Ph.D, Ed.D, etc.)': 'PhD',
     
     'Master’s degree (M.A., M.S., M.Eng., MBA, etc.)': 'Master',
+    "Master's degree (M.A., M.S., M.Eng., MBA, etc.)": 'Master',
     'Professional degree (JD, MD, etc.)': 'Master',
     
     'Bachelor’s degree (B.A., B.S., B.Eng., etc.)': 'Bachelor',
@@ -233,6 +234,7 @@ orgsize_mapping = {
     '2 to 9 employees': 'Micro (2-19)',
     'Less than 20 employees': 'Micro (2-19)',
     'Just me - I am a freelancer, sole proprietor, etc.': 'Feelancer (1)',
+    'I don’t know': 'Other',
     'I don’t know': 'Other',
     'Unknown': 'Other'
 }
