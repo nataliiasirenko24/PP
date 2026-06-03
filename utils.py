@@ -1729,23 +1729,16 @@ def fix_apostrophes(mapping: dict) -> dict:
 def shap_log_to_usd_skill(feat, shap_df, median_salary,
                            source_features=None, min_rows=10):
     """
-    Berechnet den mittleren SHAP-Wert nur für Zeilen,
-    in denen der Skill tatsächlich vorhanden ist (Quelldaten vor dem Preprocessor).
+    Berechnet den durchschnittlichen SHAP-Wert nur für Zeilen,
+    in denen der Skill tatsächlich in den Ursprungsdaten vorhanden ist.
 
-    TreeExplainer liefert für ALLE Zeilen Nicht-Null-SHAP-Werte,
-    daher filtern wir über source_features statt shap != 0.
+    TreeExplainer liefert für ALLE Zeilen Nicht-Null-SHAP-Werte, auch wenn
+    der Skill fehlt. Daher wird nach source_features gefiltert und nicht
+    nach shap_df[feat] != 0.
 
-    Parameters
-    ----------
-    feat            : str   — z.B. "multi_language__Python"
-    shap_df         : pd.DataFrame — SHAP-Werte (Zeilen = Samples, Spalten = Features)
-    median_salary   : float — globaler oder kontextueller Median in Tausend USD
-    source_features : pd.DataFrame — Originaldaten vor dem Preprocessor
-    min_rows        : int   — Mindestanzahl Zeilen mit dem Skill (0 = kein Filter)
-
-    Returns
-    -------
-    float — Gehaltseinfluss in Tausend USD (positiv = erhöht, negativ = senkt)
+    feat            : "multi_language__Python"
+    source_features : features_train.sample() — vor dem Preprocessor
+    min_rows        : Mindestanzahl Zeilen mit dem Skill (0 = kein Filter)
     """
     if feat not in shap_df.columns:
         return 0.0

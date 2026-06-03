@@ -792,7 +792,7 @@ role_category_mapping = {
 # ════════════════════════════════════════════════════════════════════════════
 
 # ── SO Survey → interne Rollenbezeichnungen ───────────────────────────────────
-ROLE_NAME_MAPPING = {
+role_name_mapping = {
     "Data scientist or machine learning specialist": "Data Scientist / ML specialist",
     "Data scientist":                               "Data Scientist / ML specialist",
     "Applied scientist":                            "Applied scientist",
@@ -807,7 +807,7 @@ ROLE_NAME_MAPPING = {
 }
 
 # ── Skill-Whitelists pro Rolle ────────────────────────────────────────────────
-DATA_ROLE_SKILLS = {
+data_role_skills = {
     "Data Analyst": {
         # Языки
         "Python", "SQL", "R", "VBA",
@@ -911,10 +911,10 @@ DATA_ROLE_SKILLS = {
 }
 
 # Объединение всех скиллов — используется как fallback
-ALL_DATA_SKILLS = set().union(*DATA_ROLE_SKILLS.values())
+all_data_skills = set().union(*data_role_skills.values())
 
 # ── Валюты по странам ─────────────────────────────────────────────────────────
-COUNTRY_CURRENCY = {
+country_currency = {
     "Germany":        "EUR European Euro",
     "France":         "EUR European Euro",
     "Netherlands":    "EUR European Euro",
@@ -932,31 +932,31 @@ COUNTRY_CURRENCY = {
 }
 
 # ── Категории скиллов для _build_profile_row ─────────────────────────────────
-LANG_KNOWN = {
+lang_known = {
     "Python", "SQL", "R", "Java", "C++", "Go", "Rust", "Scala",
     "TypeScript", "JavaScript", "Bash/Shell/PowerShell", "HTML/CSS",
     "PHP", "C#", "Kotlin", "Swift", "Ruby", "VBA", "Dart", "Matlab",
     "LISP", "COBOL", "Perl", "Julia", "Haskell", "Groovy",
 }
-DB_KNOWN = {
+db_known = {
     "PostgreSQL", "MySQL", "MongoDB", "Redis", "Snowflake", "BigQuery",
     "Elasticsearch", "DynamoDB", "SQLite", "Microsoft SQL Server",
     "Oracle", "Cassandra", "CockroachDB", "Neo4J", "Firebase",
 }
-PLAT_KNOWN = {
+plat_known = {
     "AWS", "Google Cloud", "Microsoft Azure", "Docker", "Kubernetes",
     "Terraform", "Heroku", "DigitalOcean", "Ansible", "Linode, now Akamai",
 }
-WEB_KNOWN = {
+web_known = {
     "FastAPI", "Flask", "Django", "Streamlit", "React", "Angular",
     "Vue.js", "Node.js", "Spring Framework", "ASP.NET Core",
 }
-TECH_KNOWN = {
+tech_known = {
     "Scikit-Learn", "TensorFlow", "PyTorch", "Pandas", "NumPy", "Spark",
     "Airflow", "dbt", "Tableau", "Power BI", "Looker", "Matplotlib",
     "Seaborn", "Plotly", "OpenCV", "MLflow", "Keras",
 }
-AI_KNOWN = {
+ai_known = {
     "OpenAI / ChatGPT", "Claude", "Google Gemini", "GitHub Copilot",
     "DeepSeek", "Meta AI", "Perplexity AI", "Tabnine", "Codeium",
 }
