@@ -21,13 +21,14 @@ Das Endergebnis ist ein interaktives **Data Career Advisor**-System, das persona
 ---
 
 ### 📘 Projektstruktur
-0. Bibliotheksimport, Datenladen und allgemeine Datenstrukturen
-1. EDA + Idee für Features Engineering  
-2. Base Model 
-3. Train-Test-Split
-4. ML 
-5. SHAP-Analyse & Modellinterpretation
-6. Data Career Advisor — Empfehlungssystem
+1. Bibliotheksimport, Datenladen und allgemeine Datenstrukturen
+2. EDA + Idee für Features Engineering  
+3. Base Model 
+4. Train-Test-Split
+5. ML 
+6. SHAP-Analyse & Modellinterpretation
+7. Data Career Advisor — Empfehlungssystem
+8. Fazit
 
 ---
 
@@ -40,31 +41,7 @@ Das Endergebnis ist ein interaktives **Data Career Advisor**-System, das persona
 ### ✨ Wichtigste Ergebnisse
 
 * **Bestes Modell** CatBoostRegressor (Optuna-optimiert)
-* **MAE** ~$25 500 / Jahr 
-* **R²**  0.61 
+* **MAE** ~$25 300 / Jahr 
+* **R²**  0.62 
 
-
-### 🧩 Beispielen
-
-Rolle:        Data Scientist / ML specialist
-Skills:       Python, SQL, Pandas, MySQL, NumPy
-Erfahrung:    2 Jahre
-Alter:        —
-Land:         Germany
-Abschluss:    Master's degree (M.A., M.S., M.Eng., MBA, etc.)
-Arbeitsform:  Hybrid
-
-💰 Erwartetes Gehalt:  $58,627 / Jahr
-📍 Marktmedian (Germany, Data Scientist / ML specialist):  $69,814 / Jahr
-
-
-Rolle:        Data Scientist / ML specialist
-Skills:       Python, SQL, PyTorch, TensorFlow, AWS, Docker, Kubernetes, Spark, Airflow, OpenAI / ChatGPT
-Erfahrung:    8 Jahre
-Alter:        —
-Land:         United States
-Abschluss:    Master's degree (M.A., M.S., M.Eng., MBA, etc.)
-Arbeitsform:  Remote
-
-💰 Erwartetes Gehalt:  $124,661 / Jahr
-📍 Marktmedian (United States, Data Scientist / ML specialist):  $126,057 / Jahr
+---
